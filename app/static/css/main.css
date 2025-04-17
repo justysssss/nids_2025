@@ -200,12 +200,12 @@ body {
 #packetTableBody tr {
   background-color: var(--card-bg);
   color: var(--text-primary);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
+  transform: none !important; /* Prevent transform on hover */
 }
 
 #packetTableBody tr:hover {
   background-color: var(--hover-bg);
-  transform: translateX(4px);
 }
 
 /* Forms and inputs */
@@ -307,22 +307,25 @@ body {
   border-radius: 0.5rem;
   padding: 0.5rem;
   min-width: 12rem;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .dropdown-item {
   color: var(--text-secondary);
   padding: 0.625rem 1rem;
   border-radius: 0.375rem;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: normal; /* Allow text to wrap */
+  word-break: break-word; /* Break long words if needed */
 }
 
 .dropdown-item:hover {
   background-color: var(--hover-bg);
   color: var(--text-primary);
-  transform: translateX(4px);
 }
 
 .dropdown-divider {
@@ -400,6 +403,44 @@ body {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
+}
+
+/* Chart-specific styles */
+.chart-container {
+  position: relative;
+  height: 280px;
+  margin-bottom: 1rem;
+}
+
+.chart-legend {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.chart-legend li {
+  padding: 5px;
+}
+
+/* Fix for chart text visibility */
+canvas[id="trafficChart"] + .chart-legend text {
+  fill: var(--text-primary) !important;
+}
+
+/* Alerts page specific styling */
+.alerts-page select.form-control {
+  text-overflow: ellipsis;
+  overflow: visible !important;
+  white-space: normal;
+  height: auto;
+  min-height: 38px;
+  padding-right: 30px;
+}
+
+.alerts-page .form-control option {
+  overflow: visible;
+  white-space: normal;
+  padding: 8px;
 }
 
 /* Responsive adjustments */

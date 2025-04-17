@@ -151,8 +151,56 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            usePointStyle: true
+                            usePointStyle: true,
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            color: '#FFFFFF', // Explicitly set to white for better visibility
+                            padding: 20,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.labels.map(function(label, i) {
+                                        const meta = chart.getDatasetMeta(0);
+                                        const style = meta.controller.getStyle(i);
+                                        return {
+                                            text: label,
+                                            fillStyle: style.backgroundColor,
+                                            strokeStyle: style.borderColor,
+                                            lineWidth: style.borderWidth,
+                                            pointStyle: 'circle',
+                                            hidden: !chart.getDataVisibility(i),
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
                         }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
+                                const percentage = total ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        },
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#FFFFFF',
+                        padding: 10,
+                        displayColors: true
                     }
                 }
             }
@@ -180,6 +228,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Service Distribution',
+                        color: '#f3f4f6',
+                        font: {
+                            size: 16,
+                            family: "'Inter', sans-serif"
+                        },
+                        padding: 16
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif"
+                            }
+                        },
+                        grid: {
+                            color: '#2d3748'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif"
+                            }
+                        },
+                        grid: {
+                            color: '#2d3748'
+                        }
                     }
                 }
             }
@@ -210,11 +295,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif"
+                            }
                         }
                     },
                     y: {
                         beginAtZero: true,
-                        suggestedMax: 10
+                        suggestedMax: 10,
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif"
+                            }
+                        },
+                        grid: {
+                            color: '#2d3748'
+                        }
                     }
                 },
                 plugins: {
