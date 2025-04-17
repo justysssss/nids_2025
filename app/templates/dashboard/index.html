@@ -1,0 +1,369 @@
+{% extends "base.html" %} {% block title %}NIDS Dashboard{% endblock %} {% block
+content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="mb-4">Network Intrusion Detection Dashboard</h1>
+    </div>
+  </div>
+
+  <!-- Summary Statistics Cards -->
+  <div class="row mb-4">
+    <!-- Total Packets -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div
+                class="text-xs font-weight-bold text-primary text-uppercase mb-1"
+              >
+                Total Packets
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ stats.total_packets|default(0) }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-network-wired fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Alerts -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div
+                class="text-xs font-weight-bold text-warning text-uppercase mb-1"
+              >
+                Total Alerts
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ stats.total_alerts|default(0) }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Alerts -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div
+                class="text-xs font-weight-bold text-info text-uppercase mb-1"
+              >
+                Recent Alerts (24h)
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ stats.recent_alerts|default(0) }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-clock fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Critical Alerts -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div
+                class="text-xs font-weight-bold text-danger text-uppercase mb-1"
+              >
+                Critical Alerts
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ stats.critical_alerts|default(0) }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-radiation fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row">
+    <!-- Network Traffic Chart -->
+    <div class="col-xl-8 col-lg-7">
+      <div class="card shadow mb-4">
+        <div
+          class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
+        >
+          <h6 class="m-0 font-weight-bold text-primary">Network Traffic</h6>
+        </div>
+        <div class="card-body">
+          <div class="chart-area">
+            <canvas id="networkTrafficChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Protocol Distribution Chart -->
+    <div class="col-xl-4 col-lg-5">
+      <div class="card shadow mb-4">
+        <div
+          class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
+        >
+          <h6 class="m-0 font-weight-bold text-primary">
+            Protocol Distribution
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="chart-pie">
+            <canvas id="protocolChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tables Row -->
+  <div class="row">
+    <!-- Top Attackers Table -->
+    <div class="col-xl-6 col-lg-6">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Top Attackers</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Source IP</th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for attacker in stats.top_attackers|default([]) %}
+                <tr>
+                  <td>{{ attacker[0] }}</td>
+                  <td>{{ attacker[1] }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="2" class="text-center">No attackers detected</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Attack Types Table -->
+    <div class="col-xl-6 col-lg-6">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">
+            Top Attack Categories
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Attack Type</th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for attack_type in stats.top_attack_types|default([]) %}
+                <tr>
+                  <td>{{ attack_type[0] }}</td>
+                  <td>{{ attack_type[1] }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="2" class="text-center">No attacks detected</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  // Initialize charts when the document is ready
+  document.addEventListener("DOMContentLoaded", function () {
+    // Network Traffic Chart
+    var trafficCtx = document.getElementById("networkTrafficChart");
+    if (trafficCtx) {
+      var trafficChart = new Chart(trafficCtx, {
+        type: "line",
+        data: {
+          labels: [
+            "00:00",
+            "01:00",
+            "02:00",
+            "03:00",
+            "04:00",
+            "05:00",
+            "06:00",
+          ],
+          datasets: [
+            {
+              label: "Packets",
+              lineTension: 0.3,
+              backgroundColor: "rgba(78, 115, 223, 0.05)",
+              borderColor: "rgba(78, 115, 223, 1)",
+              pointRadius: 3,
+              pointBackgroundColor: "rgba(78, 115, 223, 1)",
+              pointBorderColor: "rgba(78, 115, 223, 1)",
+              pointHoverRadius: 3,
+              pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+              pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+              pointHitRadius: 10,
+              pointBorderWidth: 2,
+              data: [0, 0, 0, 0, 0, 0, 0],
+            },
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          scales: {
+            xAxes: [
+              {
+                gridLines: {
+                  display: false,
+                  drawBorder: false,
+                },
+                ticks: {
+                  maxTicksLimit: 7,
+                },
+              },
+            ],
+            yAxes: [
+              {
+                ticks: {
+                  maxTicksLimit: 5,
+                  padding: 10,
+                  beginAtZero: true,
+                },
+                gridLines: {
+                  color: "rgb(234, 236, 244)",
+                  zeroLineColor: "rgb(234, 236, 244)",
+                  drawBorder: false,
+                  borderDash: [2],
+                  zeroLineBorderDash: [2],
+                },
+              },
+            ],
+          },
+          legend: {
+            display: false,
+          },
+          tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            titleMarginBottom: 10,
+            titleFontColor: "#6e707e",
+            titleFontSize: 14,
+            borderColor: "#dddfeb",
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            intersect: false,
+            mode: "index",
+            caretPadding: 10,
+          },
+        },
+      });
+    }
+
+    // Protocol Distribution Chart
+    var protocolCtx = document.getElementById("protocolChart");
+    if (protocolCtx) {
+      var protocolChart = new Chart(protocolCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["TCP", "UDP", "ICMP", "Other"],
+          datasets: [
+            {
+              data: [50, 30, 15, 5],
+              backgroundColor: ["#4e73df", "#1cc88a", "#36b9cc", "#f6c23e"],
+              hoverBackgroundColor: [
+                "#2e59d9",
+                "#17a673",
+                "#2c9faf",
+                "#dda20a",
+              ],
+              hoverBorderColor: "rgba(234, 236, 244, 1)",
+            },
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: "#dddfeb",
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+          },
+          legend: {
+            display: true,
+            position: "bottom",
+          },
+          cutoutPercentage: 70,
+        },
+      });
+    }
+
+    // Add code to fetch real data for charts via API endpoints
+    function updateCharts() {
+      fetch("/api/stats/packets")
+        .then((response) => response.json())
+        .then((data) => {
+          trafficChart.data.labels = data.labels;
+          trafficChart.data.datasets[0].data = data.data;
+          trafficChart.update();
+        });
+
+      fetch("/api/stats/protocols")
+        .then((response) => response.json())
+        .then((data) => {
+          protocolChart.data.labels = data.labels;
+          protocolChart.data.datasets[0].data = data.data;
+          protocolChart.update();
+        });
+    }
+
+    // Update charts initially and every 30 seconds
+    updateCharts();
+    setInterval(updateCharts, 30000);
+  });
+</script>
+{% endblock %}

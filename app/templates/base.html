@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}NIDS - Network Intrusion Detection System{% endblock %}
+    </title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+    />
+
+    {% block styles %}{% endblock %}
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- Sidebar -->
+      <nav id="sidebar" class="bg-dark">
+        <div class="sidebar-header">
+          <h3 class="text-light">NIDS Dashboard</h3>
+        </div>
+
+        <ul class="list-unstyled components">
+          <li class="{% if request.path == '/' %}active{% endif %}">
+            <a href="{{ url_for('main.index') }}"
+              ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+          </li>
+          <li
+            class="{% if request.path.startswith('/monitoring') %}active{% endif %}"
+          >
+            <a href="{{ url_for('monitor.monitoring') }}"
+              ><i class="fas fa-chart-line"></i> Monitoring</a
+            >
+          </li>
+          <li
+            class="{% if request.path.startswith('/alerts') %}active{% endif %}"
+          >
+            <a href="{{ url_for('alerts.list_alerts') }}"
+              ><i class="fas fa-bell"></i> Alerts</a
+            >
+          </li>
+          <li
+            class="{% if request.path.startswith('/logs') %}active{% endif %}"
+          >
+            <a href="{{ url_for('logs.index') }}"
+              ><i class="fas fa-list"></i> Logs</a
+            >
+          </li>
+          <li
+            class="{% if request.path.startswith('/reports') %}active{% endif %}"
+          >
+            <a href="{{ url_for('reports.index') }}"
+              ><i class="fas fa-file-alt"></i> Reports</a
+            >
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Page Content -->
+      <div id="content" class="container-fluid">
+        <!-- Top Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <button type="button" id="sidebarCollapse" class="btn btn-dark">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              {% if current_user.is_authenticated %}
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="navbarDropdown"
+                  role="button"
+                  data-toggle="dropdown"
+                >
+                  <i class="fas fa-user"></i> {{ current_user.username }}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="{{ url_for('auth.profile') }}"
+                    >Profile</a
+                  >
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{{ url_for('auth.logout') }}"
+                    >Logout</a
+                  >
+                </div>
+              </li>
+              {% else %}
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('auth.register') }}"
+                  >Register</a
+                >
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div class="container mt-3">
+          {% for category, message in get_flashed_messages(with_categories=true)
+          %}
+          <div class="alert alert-{{ category }}">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert">
+              &times;
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Main Content -->
+        <main class="py-4">{% block content %}{% endblock %}</main>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+      $(document).ready(function () {
+        $("#sidebarCollapse").on("click", function () {
+          $("#sidebar").toggleClass("active");
+        });
+      });
+    </script>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

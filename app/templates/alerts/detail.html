@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Alert Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3>Alert Details</h3>
+            <a href="{{ url_for('alerts.list_alerts') }}" class="btn btn-secondary">Back to List</a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Basic Information</h4>
+                    <table class="table">
+                        <tr>
+                            <th>ID:</th>
+                            <td>{{ alert.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Timestamp:</th>
+                            <td>{{ alert.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Severity:</th>
+                            <td>
+                                <span class="badge badge-{{ {
+                                    'low': 'info',
+                                    'medium': 'warning',
+                                    'high': 'danger',
+                                    'critical': 'dark'
+                                }[alert.severity] }}">
+                                    {{ alert.severity.upper() }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if alert.resolved %}
+                                <span class="badge badge-success">Resolved</span>
+                                {% else %}
+                                <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>Network Details</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Source IP:</th>
+                            <td>{{ alert.source_ip }}</td>
+                        </tr>
+                        <tr>
+                            <th>Destination IP:</th>
+                            <td>{{ alert.destination_ip }}</td>
+                        </tr>
+                        <tr>
+                            <th>Protocol:</th>
+                            <td>{{ alert.protocol }}</td>
+                        </tr>
+                        <tr>
+                            <th>Attack Category:</th>
+                            <td>{{ alert.attack_category }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h4>Description</h4>
+                <p class="alert alert-info">{{ alert.description }}</p>
+            </div>
+
+            {% if alert.resolved %}
+            <div class="mt-4">
+                <h4>Resolution Notes</h4>
+                <p class="alert alert-success">{{ alert.resolution_notes or 'No resolution notes provided.' }}</p>
+            </div>
+            {% else %}
+            <div class="mt-4">
+                <h4>Resolve Alert</h4>
+                <form action="{{ url_for('alerts.resolve_alert', id=alert.id) }}" method="post">
+                    <div class="form-group">
+                        <label for="notes">Resolution Notes:</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Mark as Resolved</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

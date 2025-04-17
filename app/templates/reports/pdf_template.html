@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ report.title }}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+      }
+      .header h1 {
+        color: #2c3e50;
+        margin-bottom: 5px;
+      }
+      .header p {
+        color: #7f8c8d;
+        margin: 0;
+      }
+      .section {
+        margin-bottom: 30px;
+        page-break-inside: avoid;
+      }
+      .section-title {
+        background-color: #3498db;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .stat-box {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 5px;
+        text-align: center;
+        width: 22%;
+      }
+      .stat-box h3 {
+        margin-top: 0;
+        margin-bottom: 5px;
+        font-size: 24px;
+      }
+      .stat-box p {
+        margin: 0;
+        color: #7f8c8d;
+      }
+      .footer {
+        margin-top: 50px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+        text-align: center;
+        font-size: 12px;
+        color: #7f8c8d;
+      }
+      .alert-box {
+        background-color: #f8f9fa;
+        border-left: 5px solid #ffc107;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      .recommendations {
+        background-color: #f8f9fa;
+        border-left: 5px solid #28a745;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      .badge {
+        padding: 5px 10px;
+        border-radius: 3px;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+      }
+      .badge-info {
+        background-color: #17a2b8;
+      }
+      .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+      }
+      .badge-danger {
+        background-color: #dc3545;
+      }
+      .badge-dark {
+        background-color: #343a40;
+      }
+      .badge-success {
+        background-color: #28a745;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Report Header -->
+    <div class="header">
+      <h1>{{ report.title }}</h1>
+      <p>Generated on {{ report.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+      <p>
+        Report Period: {{ report.start_date.strftime('%Y-%m-%d') }} to {{
+        report.end_date.strftime('%Y-%m-%d') }}
+      </p>
+    </div>
+
+    <!-- Executive Summary Section -->
+    <div class="section">
+      <h2 class="section-title">Executive Summary</h2>
+      <div class="stats">
+        <div class="stat-box">
+          <p>Total Packets</p>
+          <h3>{{ report_data.total_packets|default(0) }}</h3>
+        </div>
+        <div class="stat-box">
+          <p>Total Alerts</p>
+          <h3>{{ report_data.total_alerts|default(0) }}</h3>
+        </div>
+        <div class="stat-box">
+          <p>Critical Alerts</p>
+          <h3>{{ report_data.critical_alerts|default(0) }}</h3>
+        </div>
+        <div class="stat-box">
+          <p>Detection Rate</p>
+          <h3>
+            {{ "%.2f"|format(report_data.detection_rate|default(0) * 100) }}%
+          </h3>
+        </div>
+      </div>
+
+      <p>
+        {{ report_data.summary|default('This report provides an overview of
+        network security events and traffic analysis for the specified time
+        period.') }}
+      </p>
+
+      {% if report_data.findings and report_data.findings|length > 0 %}
+      <div class="alert-box">
+        <h3>Key Findings</h3>
+        <ul>
+          {% for finding in report_data.findings %}
+          <li>{{ finding }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Traffic Analysis Section -->
+    {% if 'traffic' in report_data.sections|default([]) and
+    report_data.top_flows|default([]) %}
+    <div class="section">
+      <h2 class="section-title">Traffic Analysis</h2>
+
+      {% if report_data.top_flows and report_data.top_flows|length > 0 %}
+      <h3>Top Traffic Flows</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Protocol</th>
+            <th>Packets</th>
+            <th>Bytes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for flow in report_data.top_flows %}
+          <tr>
+            <td>{{ flow.src_ip }}</td>
+            <td>{{ flow.dst_ip }}</td>
+            <td>{{ flow.protocol }}</td>
+            <td>{{ flow.packets }}</td>
+            <td>{{ flow.bytes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %} {% if report_data.protocol_labels and
+      report_data.protocol_labels|length > 0 %}
+      <h3>Protocol Distribution</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Protocol</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(report_data.protocol_labels|length) %}
+          <tr>
+            <td>{{ report_data.protocol_labels[i] }}</td>
+            <td>{{ report_data.protocol_data[i] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Alert Details Section -->
+    {% if 'alerts' in report_data.sections|default([]) %}
+    <div class="section">
+      <h2 class="section-title">Alert Details</h2>
+
+      {% if report_data.notable_alerts and report_data.notable_alerts|length > 0
+      %}
+      <h3>Notable Alerts</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Severity</th>
+            <th>Attack Category</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alert in report_data.notable_alerts %}
+          <tr>
+            <td>{{ alert.timestamp }}</td>
+            <td>{{ alert.source_ip }}</td>
+            <td>{{ alert.destination_ip }}</td>
+            <td>{{ alert.severity|upper }}</td>
+            <td>{{ alert.attack_category }}</td>
+            <td>{{ "Resolved" if alert.resolved else "Pending" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %} {% if report_data.severity_labels and
+      report_data.severity_labels|length > 0 %}
+      <h3>Alert Severity Distribution</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(report_data.severity_labels|length) %}
+          <tr>
+            <td>{{ report_data.severity_labels[i]|upper }}</td>
+            <td>{{ report_data.severity_data[i] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Recommendations Section -->
+    {% if 'recommendations' in report_data.sections|default([]) and
+    report_data.recommendations|default([]) %}
+    <div class="section">
+      <h2 class="section-title">Security Recommendations</h2>
+
+      <div class="recommendations">
+        <h3>Recommendations</h3>
+        <ul>
+          {% for rec in report_data.recommendations %}
+          <li>{{ rec }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {% if report_data.remediation_steps|default([]) %}
+      <h3>Remediation Steps</h3>
+      <ol>
+        {% for step in report_data.remediation_steps %}
+        <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>
+        {{ report.title }} - Generated by NIDS Network Intrusion Detection
+        System
+      </p>
+      <p>
+        Report ID: {{ report.id }} - Generated on {{
+        report.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+      </p>
+    </div>
+  </body>
+</html>

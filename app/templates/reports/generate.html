@@ -1,0 +1,536 @@
+{% extends "base.html" %} {% block title %}Generate Report{% endblock %} {%
+block content %}
+<div class="container mt-4">
+  <h2>Report Generator</h2>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Configure Report</h6>
+    </div>
+    <div class="card-body">
+      <form
+        id="reportForm"
+        method="POST"
+        action="{{ url_for('reports.generate') }}"
+      >
+        <div class="row">
+          <div class="col-md-6">
+            <!-- Report Title -->
+            <div class="form-group">
+              <label for="title">Report Title</label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                name="title"
+                placeholder="Network Security Report"
+                required
+              />
+            </div>
+
+            <!-- Report Type -->
+            <div class="form-group">
+              <label for="type">Report Type</label>
+              <select class="form-control" id="type" name="type" required>
+                <option value="alerts_summary">Alerts Summary</option>
+                <option value="traffic_analysis">Traffic Analysis</option>
+                <option value="threat_intel">Threat Intelligence</option>
+                <option value="system_health">System Health</option>
+                <option value="custom">Custom Report</option>
+              </select>
+            </div>
+
+            <!-- Date Range -->
+            <div class="form-group">
+              <label for="date_range">Timeframe</label>
+              <select class="form-control" id="date_range" name="date_range">
+                <option value="daily">Daily (Last 24 hours)</option>
+                <option value="weekly">Weekly (Last 7 days)</option>
+                <option value="monthly">Monthly (Last 30 days)</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+
+            <!-- Custom Date Range (initially hidden) -->
+            <div id="custom_range" class="form-group" style="display: none">
+              <div class="form-row">
+                <div class="col">
+                  <label for="start_date">Start Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="start_date"
+                    name="start_date"
+                  />
+                </div>
+                <div class="col">
+                  <label for="end_date">End Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="end_date"
+                    name="end_date"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <!-- Report Sections -->
+            <div class="form-group">
+              <label>Report Sections</label>
+              <div class="custom-control custom-checkbox">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="include_summary"
+                  name="sections"
+                  value="summary"
+                  checked
+                />
+                <label class="custom-control-label" for="include_summary"
+                  >Executive Summary</label
+                >
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="include_alerts"
+                  name="sections"
+                  value="alerts"
+                  checked
+                />
+                <label class="custom-control-label" for="include_alerts"
+                  >Alert Details</label
+                >
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="include_traffic"
+                  name="sections"
+                  value="traffic"
+                  checked
+                />
+                <label class="custom-control-label" for="include_traffic"
+                  >Traffic Analysis</label
+                >
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="include_charts"
+                  name="sections"
+                  value="charts"
+                  checked
+                />
+                <label class="custom-control-label" for="include_charts"
+                  >Charts & Visualizations</label
+                >
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="include_recommendations"
+                  name="sections"
+                  value="recommendations"
+                  checked
+                />
+                <label
+                  class="custom-control-label"
+                  for="include_recommendations"
+                  >Recommendations</label
+                >
+              </div>
+            </div>
+
+            <!-- Output Format -->
+            <div class="form-group">
+              <label>Output Format</label>
+              <div class="custom-control custom-radio">
+                <input
+                  type="radio"
+                  id="format_pdf"
+                  name="format"
+                  value="pdf"
+                  class="custom-control-input"
+                  checked
+                />
+                <label class="custom-control-label" for="format_pdf"
+                  >PDF Document</label
+                >
+              </div>
+              <div class="custom-control custom-radio">
+                <input
+                  type="radio"
+                  id="format_csv"
+                  name="format"
+                  value="csv"
+                  class="custom-control-input"
+                />
+                <label class="custom-control-label" for="format_csv"
+                  >CSV Spreadsheet</label
+                >
+              </div>
+              <div class="custom-control custom-radio">
+                <input
+                  type="radio"
+                  id="format_html"
+                  name="format"
+                  value="html"
+                  class="custom-control-input"
+                />
+                <label class="custom-control-label" for="format_html"
+                  >HTML (Web)</label
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email Options -->
+        <div class="form-group mt-3">
+          <div class="card">
+            <div class="card-header py-2">
+              <div class="custom-control custom-switch">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="email_report"
+                  name="email_report"
+                />
+                <label class="custom-control-label" for="email_report"
+                  >Email Report When Generated</label
+                >
+              </div>
+            </div>
+            <div class="card-body" id="email_options" style="display: none">
+              <div class="form-group">
+                <label for="email"
+                  >Email Addresses (separate with commas)</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="email"
+                  name="email"
+                  placeholder="admin@example.com, security@example.com"
+                />
+              </div>
+              <div class="form-group mb-0">
+                <label for="email_subject">Email Subject</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="email_subject"
+                  name="email_subject"
+                  placeholder="Network Security Report"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Options -->
+        <div class="form-group mt-3">
+          <div class="card">
+            <div class="card-header py-2">
+              <div class="custom-control custom-switch">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="schedule_report"
+                  name="schedule_report"
+                />
+                <label class="custom-control-label" for="schedule_report"
+                  >Schedule Recurring Report</label
+                >
+              </div>
+            </div>
+            <div class="card-body" id="schedule_options" style="display: none">
+              <div class="form-row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="schedule_frequency">Frequency</label>
+                    <select
+                      class="form-control"
+                      id="schedule_frequency"
+                      name="schedule_frequency"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="schedule_day">Day</label>
+                    <select
+                      class="form-control"
+                      id="schedule_day"
+                      name="schedule_day"
+                    >
+                      <option value="1">Monday</option>
+                      <option value="2">Tuesday</option>
+                      <option value="3">Wednesday</option>
+                      <option value="4">Thursday</option>
+                      <option value="5">Friday</option>
+                      <option value="6">Saturday</option>
+                      <option value="0">Sunday</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group mb-0">
+                <label for="schedule_time">Time (24-hour)</label>
+                <input
+                  type="time"
+                  class="form-control"
+                  id="schedule_time"
+                  name="schedule_time"
+                  value="00:00"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg mt-4">
+          <i class="fas fa-file-alt"></i> Generate Report
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Recent Reports</h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover"
+          width="100%"
+          cellspacing="0"
+        >
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Date Generated</th>
+              <th>Format</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for report in recent_reports|default([]) %}
+            <tr>
+              <td>{{ report.title }}</td>
+              <td>{{ report.type|replace('_', ' ')|title }}</td>
+              <td>{{ report.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td>{{ report.format|upper }}</td>
+              <td>
+                <a
+                  href="{{ url_for('reports.view_report', id=report.id) }}"
+                  class="btn btn-info btn-sm"
+                >
+                  <i class="fas fa-eye"></i> View
+                </a>
+                <a
+                  href="{{ url_for('reports.download_report', id=report.id) }}"
+                  class="btn btn-primary btn-sm"
+                >
+                  <i class="fas fa-download"></i> Download
+                </a>
+                <button
+                  class="btn btn-danger btn-sm delete-report"
+                  data-id="{{ report.id }}"
+                >
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center">No reports generated yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Handle date range selection
+    document
+      .getElementById("date_range")
+      .addEventListener("change", function () {
+        const customRangeDiv = document.getElementById("custom_range");
+        if (this.value === "custom") {
+          customRangeDiv.style.display = "block";
+        } else {
+          customRangeDiv.style.display = "none";
+        }
+      });
+
+    // Toggle email options
+    document
+      .getElementById("email_report")
+      .addEventListener("change", function () {
+        const emailOptionsDiv = document.getElementById("email_options");
+        if (this.checked) {
+          emailOptionsDiv.style.display = "block";
+        } else {
+          emailOptionsDiv.style.display = "none";
+        }
+      });
+
+    // Toggle schedule options
+    document
+      .getElementById("schedule_report")
+      .addEventListener("change", function () {
+        const scheduleOptionsDiv = document.getElementById("schedule_options");
+        if (this.checked) {
+          scheduleOptionsDiv.style.display = "block";
+        } else {
+          scheduleOptionsDiv.style.display = "none";
+        }
+      });
+
+    // Handle report type change to update available sections
+    document.getElementById("type").addEventListener("change", function () {
+      const type = this.value;
+      const recommendationsCheckbox = document.getElementById(
+        "include_recommendations"
+      );
+      const trafficCheckbox = document.getElementById("include_traffic");
+
+      // Enable/disable sections based on report type
+      switch (type) {
+        case "alerts_summary":
+          document.getElementById("include_alerts").checked = true;
+          break;
+
+        case "traffic_analysis":
+          document.getElementById("include_traffic").checked = true;
+          break;
+
+        case "system_health":
+          recommendationsCheckbox.checked = true;
+          break;
+      }
+    });
+
+    // Handle delete report buttons
+    document.querySelectorAll(".delete-report").forEach((button) => {
+      button.addEventListener("click", function () {
+        const reportId = this.dataset.id;
+        if (
+          confirm(
+            "Are you sure you want to delete this report? This action cannot be undone."
+          )
+        ) {
+          fetch(`/reports/delete/${reportId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                // Remove the row from the table
+                this.closest("tr").remove();
+
+                // Show success message
+                alert("Report deleted successfully");
+
+                // If table is now empty, show the empty message
+                const tbody = document.querySelector("tbody");
+                if (tbody.children.length === 0) {
+                  tbody.innerHTML =
+                    '<tr><td colspan="5" class="text-center">No reports generated yet.</td></tr>';
+                }
+              } else {
+                alert("Error deleting report: " + data.message);
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              alert("An error occurred while deleting the report");
+            });
+        }
+      });
+    });
+
+    // Form submit handler
+    document
+      .getElementById("reportForm")
+      .addEventListener("submit", function (e) {
+        // Check if all required fields are filled
+        const title = document.getElementById("title").value;
+
+        if (!title) {
+          e.preventDefault();
+          alert("Please enter a report title");
+          return false;
+        }
+
+        // If custom date range is selected, validate dates
+        if (document.getElementById("date_range").value === "custom") {
+          const startDate = document.getElementById("start_date").value;
+          const endDate = document.getElementById("end_date").value;
+
+          if (!startDate || !endDate) {
+            e.preventDefault();
+            alert("Please select both start and end dates for custom range");
+            return false;
+          }
+
+          if (new Date(endDate) < new Date(startDate)) {
+            e.preventDefault();
+            alert("End date must be after start date");
+            return false;
+          }
+        }
+
+        // If email report is enabled, validate email
+        if (document.getElementById("email_report").checked) {
+          const email = document.getElementById("email").value;
+          if (!email) {
+            e.preventDefault();
+            alert("Please enter at least one email address");
+            return false;
+          }
+
+          // Simple email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          const emails = email.split(",").map((e) => e.trim());
+
+          for (let i = 0; i < emails.length; i++) {
+            if (!emailRegex.test(emails[i])) {
+              e.preventDefault();
+              alert(`Invalid email address: ${emails[i]}`);
+              return false;
+            }
+          }
+        }
+
+        // Add loading indicator
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
+      });
+  });
+</script>
+{% endblock %}

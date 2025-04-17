@@ -1,0 +1,11 @@
+/* Ensure table rows in the packet table body are displayed */
+#packetTableBody tr {
+    display: table-row !important; /* Force display as table row */
+    background-color: #f9f9f9; /* Add a very light background for testing */
+    color: #333; /* Ensure text color is visible */
+}
+
+/* Ensure table cells have default vertical alignment */
+#packetTableBody td {
+    vertical-align: middle !important;
+}

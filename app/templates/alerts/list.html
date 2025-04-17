@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Alerts{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Security Alerts</h2>
+    
+    <!-- Filter controls -->
+    <div class="mb-4">
+        <form class="form-inline" method="get">
+            <select name="severity" class="form-control mr-2">
+                <option value="">All Severities</option>
+                <option value="low" {% if request.args.get('severity') == 'low' %}selected{% endif %}>Low</option>
+                <option value="medium" {% if request.args.get('severity') == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="high" {% if request.args.get('severity') == 'high' %}selected{% endif %}>High</option>
+                <option value="critical" {% if request.args.get('severity') == 'critical' %}selected{% endif %}>Critical</option>
+            </select>
+            <select name="resolved" class="form-control mr-2">
+                <option value="">All Status</option>
+                <option value="false" {% if request.args.get('resolved') == 'false' %}selected{% endif %}>Unresolved</option>
+                <option value="true" {% if request.args.get('resolved') == 'true' %}selected{% endif %}>Resolved</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+
+    <!-- Alerts table -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Severity</th>
+                    <th>Source IP</th>
+                    <th>Destination IP</th>
+                    <th>Attack Category</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr>
+                    <td>{{ alert.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>
+                        <span class="badge badge-{{ {
+                            'low': 'info',
+                            'medium': 'warning',
+                            'high': 'danger',
+                            'critical': 'dark'
+                        }[alert.severity] }}">
+                            {{ alert.severity.upper() }}
+                        </span>
+                    </td>
+                    <td>{{ alert.source_ip }}</td>
+                    <td>{{ alert.destination_ip }}</td>
+                    <td>{{ alert.attack_category }}</td>
+                    <td>
+                        {% if alert.resolved %}
+                        <span class="badge badge-success">Resolved</span>
+                        {% else %}
+                        <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('alerts.view_alert', id=alert.id) }}" class="btn btn-sm btn-info">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if not alerts %}
+    <div class="alert alert-info" role="alert">
+        No alerts found matching the selected criteria.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
